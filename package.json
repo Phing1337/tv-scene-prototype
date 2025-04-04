@@ -1,13 +1,16 @@
 {
   "name": "tv-scene-prototype",
   "version": "1.0.0",
+  "homepage": "https://phing1337.github.io/tv-scene-prototype",
   "description": "A React-based interactive TV simulator with light/dark mode and ambient room effects",
   "main": "src/index.tsx",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "dependencies": {
     "@types/react-youtube": "^7.10.0",
@@ -19,6 +22,7 @@
   "devDependencies": {
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.1",
+    "gh-pages": "^6.3.0",
     "typescript": "^4.9.5"
   },
   "keywords": [

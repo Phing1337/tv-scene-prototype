@@ -26,6 +26,19 @@ A React-based interactive TV simulator with light/dark mode and ambient room eff
 - Node.js (v14 or higher)
 - npm or yarn
 
+### Installation
+
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Start development server: `npm start`
+
+### Deployment
+
+This project is deployed using GitHub Pages. To deploy new changes:
+
+1. Ensure all changes are committed
+2. Run `npm run deploy`
+3. Visit https://phing1337.github.io/tv-scene-prototype
 
 ## 📝 Usage
 
