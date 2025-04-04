@@ -1,7 +1,7 @@
 {
   "name": "tv-scene-prototype",
   "version": "1.0.0",
-  "description": "A prototype for a TV-like experience with a simple scene.",
+  "description": "A React-based interactive TV simulator with light/dark mode and ambient room effects",
   "main": "src/index.tsx",
   "scripts": {
     "start": "react-scripts start",
@@ -24,9 +24,25 @@
   "keywords": [
     "tv",
     "prototype",
-    "react"
+    "react",
+    "simulator",
+    "interactive",
+    "ambient",
+    "youtube"
   ],
-  "author": "Your Name",
+  "author": {
+    "name": "Your Name",
+    "email": "email@example.com",
+    "url": "https://github.com/yourusername"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/tv-scene-prototype.git"
+  },
+  "homepage": "https://github.com/yourusername/tv-scene-prototype#readme",
+  "bugs": {
+    "url": "https://github.com/yourusername/tv-scene-prototype/issues"
+  },
   "license": "MIT",
   "browserslist": {
     "production": [
