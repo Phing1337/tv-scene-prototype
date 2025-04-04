@@ -1,6 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import TV from './components/TV';
+import LightSwitch from './components/LightSwitch';
 import './styles/tv.css';
+
+// Define the TV props interface
+interface TVProps {
+    size: 'small' | 'medium' | 'large' | 'xlarge';
+    displaySettings: {
+        brightness: number;
+        contrast: number;
+    };
+    wallColor: string;
+    wallTexture: 'paint' | 'wood' | 'wallpaper';
+    isOn: boolean;
+}
 
 const App: React.FC = () => {
     const [dimensions, setDimensions] = useState({
@@ -16,6 +29,20 @@ const App: React.FC = () => {
     
     // Debug state for toggling information
     const [showDebug, setShowDebug] = useState(false);
+    
+    // Light switch state
+    const [darkMode, setDarkMode] = useState(false);
+    const [isTVOn, setIsTVOn] = useState(false);
+
+    // Toggle dark mode function
+    const toggleLights = () => {
+        setDarkMode(!darkMode);
+    };
+
+    // Toggle TV state function
+    const toggleTV = () => {
+        setIsTVOn(!isTVOn);
+    };
 
     // Debug logging wrapper
     const debugLog = (...args: any[]) => {
@@ -63,17 +90,26 @@ const App: React.FC = () => {
         };
     }, [showDebug]); // Add showDebug to dependencies
 
+    useEffect(() => {
+        // Add VSC initialized class to body
+        document.body.classList.add('vsc-initialized');
+    }, []);
+
     // Props being passed to components
-    const tvProps = {
-        size: "xlarge",
+    const tvProps: TVProps = {
+        size: 'xlarge',
         displaySettings: { brightness: 85, contrast: 75 },
-        wallColor: "#e6ccac",
-        wallTexture: "paint" // Removed 'as const' to make it valid JavaScript
+        wallColor: '#e6ccac',
+        wallTexture: 'paint',
+        isOn: isTVOn
     };
     debugLog('[App] TV props being passed:', tvProps);
 
     return (
-        <div className="tv-container" ref={tvContainerRef}>
+        <div className={`tv-container ${darkMode ? 'dark-mode' : ''}`} ref={tvContainerRef}>
+            {/* Add TV glow effect */}
+            <div className={`tv-glow ${isTVOn ? 'tv-on' : ''}`}></div>
+
             <button 
                 onClick={() => setShowDebug(!showDebug)}
                 style={{ 
@@ -97,10 +133,17 @@ const App: React.FC = () => {
                 {showDebug ? 'Hide Debug' : 'Show Debug'}
             </button>
             
+            <LightSwitch 
+                isDarkMode={darkMode} 
+                isTVOn={isTVOn}
+                toggleLights={toggleLights} 
+                toggleTV={toggleTV}
+            />
+            
             {showDebug && (
                 <div className="debug-panel" style={{
                     position: 'fixed',
-                    top: '50px',
+                    top: '100px',
                     right: '10px',
                     background: 'rgba(0,0,0,0.8)',
                     color: 'lime',
@@ -129,6 +172,7 @@ const App: React.FC = () => {
                         showDebug={showDebug}
                         wallColor={tvProps.wallColor}
                         wallTexture={tvProps.wallTexture}
+                        isOn={isTVOn}
                     />
                 </div>
             </div>

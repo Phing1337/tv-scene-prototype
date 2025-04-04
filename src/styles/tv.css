@@ -1,49 +1,92 @@
-/* Wall background - warm living room style with soft lighting */
+/* Base styles */
 body {
     margin: 0;
     padding: 0;
-    background-color: #e6ccac; /* Warm beige color */
-    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4bb9c' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
     overflow: hidden;
-    box-shadow: inset 0 0 150px rgba(0, 0, 0, 0.15); /* Subtle shadow for depth */
-    position: relative; /* Required for absolute positioning of light effects */
+    transition: all 0.5s ease;
+    background-color: #e6ccac;
 }
 
-/* Soft lighting effect for left and right of the wall */
-body::before,
-body::after {
+body.vsc-initialized {
+    background-color: #1e1e1e !important;
+    transition: none !important;
+}
+
+/* Scene container styles */
+.tv-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s ease;
+    background-color: rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+}
+
+.tv-container.dark-mode {
+    background-color: rgba(0, 0, 0, 0.95);
+}
+
+/* TV Scene styles */
+.tv-scene {
+    position: relative;
+    max-width: 95vw;
+    max-height: 90vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+}
+
+/* Light mode effects */
+.tv-container::before,
+.tv-container::after {
     content: '';
     position: absolute;
     width: 30%;
     height: 65%;
     border-radius: 50%;
-    opacity: 0.6;
+    opacity: 0.4;
     filter: blur(80px);
     pointer-events: none;
     z-index: 1;
+    transition: opacity 0.3s ease, background 0.3s ease;
 }
 
 /* Left warm light */
-body::before {
+.tv-container::before {
     left: -5%;
     top: 20%;
     background: radial-gradient(circle, rgba(255, 216, 155, 0.8) 0%, rgba(255, 201, 115, 0) 70%);
 }
 
 /* Right warm light */
-body::after {
+.tv-container::after {
     right: -5%;
     top: 30%;
     background: radial-gradient(circle, rgba(255, 206, 133, 0.7) 0%, rgba(255, 194, 102, 0) 70%);
 }
 
-/* Center ambient glow behind the TV */
-.tv-container::before {
-    content: '';
+/* Dark mode - hide the container glow */
+.dark-mode.tv-container::before,
+.dark-mode.tv-container::after {
+    opacity: 0;
+}
+
+/* TV glow effect */
+.tv-glow {
     position: absolute;
     width: 60%;
     height: 40%;
@@ -53,29 +96,43 @@ body::after {
     z-index: 0;
     filter: blur(50px);
     pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
-.tv-container {
-    padding: 20px;
-    max-width: 95vw;
-    max-height: 90vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    height: 100vh;
+.tv-glow.tv-on {
+    opacity: 1;
 }
 
-.tv-scene {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    width: 100%;
-    height: 100%;
+/* Dark mode styles */
+.dark-mode {
+    background-color: #0a0a0a;
 }
 
+.dark-mode .tv-container::before {
+    opacity: 0.1;
+    background: radial-gradient(circle, rgba(30, 60, 100, 0.2) 0%, rgba(30, 60, 100, 0) 70%);
+    filter: blur(100px);
+}
+
+.dark-mode .tv-container::after {
+    opacity: 0.1;
+    background: radial-gradient(circle, rgba(40, 60, 120, 0.2) 0%, rgba(40, 60, 120, 0) 70%);
+    filter: blur(100px);
+}
+
+.dark-mode .tv-glow {
+    background: radial-gradient(ellipse, rgba(150, 170, 255, 0.2) 0%, rgba(150, 170, 255, 0) 80%);
+    opacity: 0.7;
+    filter: blur(60px);
+}
+
+.dark-mode .tv-glow.tv-on {
+    background: radial-gradient(ellipse, rgba(150, 170, 255, 0.15) 0%, rgba(150, 170, 255, 0) 70%);
+    opacity: 0.7;
+}
+
+/* TV Component Styles */
 .tv {
     position: relative;
     background-color: #000;
@@ -122,15 +179,6 @@ body::after {
     margin-top: 10px;
     display: flex;
     justify-content: center;
-}
-
-.tv-power-btn {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background-color: #f00;
-    border: none;
-    cursor: pointer;
 }
 
 /* TV sizes - fixed with proper class names matching component usage */
@@ -220,6 +268,16 @@ body::after {
     z-index: 9999;
 }
 
+/* Debug overlay styles */
+.debug-overlay {
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
 /* YouTube video container styling */
 .youtube-container {
     position: absolute;
@@ -230,7 +288,6 @@ body::after {
     overflow: hidden;
 }
 
-/* YouTube iframe styling */
 .youtube-player {
     position: absolute;
     top: 50%;
@@ -239,10 +296,8 @@ body::after {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    pointer-events: none; /* Prevent interaction with the video */
 }
 
-/* Make the YouTube iframe fill the container properly */
 .youtube-player iframe {
     width: 100%;
     height: 100%;

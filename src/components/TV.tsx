@@ -11,6 +11,7 @@ interface TVProps {
   showDebug?: boolean;
   wallColor?: string; 
   wallTexture?: 'wood' | 'paint' | 'wallpaper';
+  isOn?: boolean;
 }
 
 const TV: React.FC<TVProps> = ({ 
@@ -18,7 +19,8 @@ const TV: React.FC<TVProps> = ({
   displaySettings = { brightness: 80, contrast: 70 },
   showDebug = false,
   wallColor = '#e8d0b3',
-  wallTexture = 'paint'
+  wallTexture = 'paint',
+  isOn = false
 }) => {
   // Get actual rendered dimensions
   const tvRef = React.useRef<HTMLDivElement>(null);
@@ -100,7 +102,7 @@ const TV: React.FC<TVProps> = ({
     return rgbToHex(newRgb[0], newRgb[1], newRgb[2]);
   };
   
-  debugLog('[TV] Component rendering with props:', { size, displaySettings, showDebug, wallColor, wallTexture });
+  debugLog('[TV] Component rendering with props:', { size, displaySettings, showDebug, wallColor, wallTexture, isOn });
   
   React.useEffect(() => {
     debugLog('[TV] useEffect running, size prop:', size);
@@ -177,6 +179,8 @@ const TV: React.FC<TVProps> = ({
   // Custom styles based on display settings
   const screenStyle = {
     filter: `brightness(${displaySettings.brightness}%) contrast(${displaySettings.contrast}%)`,
+    opacity: isOn ? 1 : 0,
+    transition: 'opacity 0.3s ease'
   };
 
   // YouTube player options - enhanced for better looping and fullscreen appearance
@@ -203,7 +207,7 @@ const TV: React.FC<TVProps> = ({
 
   return (
     <div className="tv-debug-wrapper">      
-      <div className={tvClasses} ref={tvRef} data-size={size}>
+      <div className={`tv ${tvClasses} ${isOn ? 'on' : 'off'}`} ref={tvRef} data-size={size}>
         <div className="tv-frame">
           <div className="tv-screen" style={screenStyle}>
             <div className="tv-content">
