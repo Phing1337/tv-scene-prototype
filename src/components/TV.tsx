@@ -11,7 +11,7 @@ interface TVProps {
   showDebug?: boolean;
   wallColor?: string; 
   wallTexture?: 'wood' | 'paint' | 'wallpaper';
-  isOn?: boolean;
+  isDarkMode?: boolean;
 }
 
 const TV: React.FC<TVProps> = ({ 
@@ -20,11 +20,10 @@ const TV: React.FC<TVProps> = ({
   showDebug = false,
   wallColor = '#e8d0b3',
   wallTexture = 'paint',
-  isOn = false
+  isDarkMode = false
 }) => {
   // Get actual rendered dimensions
   const tvRef = React.useRef<HTMLDivElement>(null);
-  const [dimensions, setDimensions] = React.useState({ width: 0, height: 0 });
   const youtubePlayerRef = React.useRef<any>(null);
   
   // Debug logging wrapper
@@ -102,7 +101,7 @@ const TV: React.FC<TVProps> = ({
     return rgbToHex(newRgb[0], newRgb[1], newRgb[2]);
   };
   
-  debugLog('[TV] Component rendering with props:', { size, displaySettings, showDebug, wallColor, wallTexture, isOn });
+  debugLog('[TV] Component rendering with props:', { size, displaySettings, showDebug, wallColor, wallTexture, isDarkMode });
   
   React.useEffect(() => {
     debugLog('[TV] useEffect running, size prop:', size);
@@ -123,67 +122,101 @@ const TV: React.FC<TVProps> = ({
           position: computedStyle.position
         });
       }
-      
-      setDimensions({
-        width: initialWidth,
-        height: initialHeight
-      });
     }
-    
-    const resizeObserver = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        const newWidth = entry.contentRect.width;
-        const newHeight = entry.contentRect.height;
-        debugLog('[TV] ResizeObserver detected size change:', { 
-          width: newWidth, 
-          height: newHeight 
-        });
-        setDimensions({
-          width: newWidth,
-          height: newHeight
-        });
-      }
-    });
-    
-    if (tvRef.current) {
-      resizeObserver.observe(tvRef.current);
-    }
-    
-    return () => {
-      if (tvRef.current) {
-        resizeObserver.unobserve(tvRef.current);
-      }
-    };
   }, [size, showDebug]);
 
   // Handle YouTube player ready event
   const onPlayerReady = (event: any) => {
+    console.log('[TV] YouTube player ready event:', event);
     youtubePlayerRef.current = event.target;
-    // Ensure video is playing and looping
-    event.target.playVideo();
+    
+    try {
+      console.log('[TV] Attempting to play video...');
+      event.target.playVideo();
+      
+      // Log player state and other details
+      console.log('[TV] Player state after playVideo:', event.target.getPlayerState());
+      console.log('[TV] Video URL:', event.target.getVideoUrl());
+      console.log('[TV] Playback quality:', event.target.getPlaybackQuality());
+      console.log('[TV] Player configuration:', videoOptions);
+    } catch (error) {
+      console.error('[TV] Error during video playback initialization:', error);
+    }
     debugLog('[TV] YouTube player ready');
   };
 
   // Handle YouTube player state changes
   const onPlayerStateChange = (event: any) => {
+    const stateMap: {[key: number]: string} = {
+      '-1': 'unstarted',
+      '0': 'ended',
+      '1': 'playing',
+      '2': 'paused',
+      '3': 'buffering',
+      '5': 'video cued'
+    };
+    
+    console.log('[TV] Player state changed:', {
+      state: event.data,
+      stateName: stateMap[event.data],
+      currentTime: event.target.getCurrentTime(),
+      duration: event.target.getDuration(),
+      isMuted: event.target.isMuted(),
+      volume: event.target.getVolume()
+    });
+
     // If video ends (state 0), restart it to ensure looping works
     if (event.data === 0) {
-      event.target.playVideo();
-      debugLog('[TV] YouTube video restarted for looping');
+      console.log('[TV] Video ended, attempting to restart...');
+      try {
+        event.target.playVideo();
+        console.log('[TV] Video restart initiated');
+      } catch (error) {
+        console.error('[TV] Error restarting video:', error);
+      }
     }
+
+    // If video is cued (state 5), start playing
+    if (event.data === 5) {
+      console.log('[TV] Video cued, attempting to start playback...');
+      try {
+        event.target.playVideo();
+        console.log('[TV] Playback started from cued state');
+      } catch (error) {
+        console.error('[TV] Error starting video from cued state:', error);
+      }
+    }
+  };
+
+  // Add error event handler
+  const onPlayerError = (event: any) => {
+    const errorCodes: {[key: number]: string} = {
+      2: 'Invalid parameter value',
+      5: 'HTML5 player error',
+      100: 'Video not found/removed',
+      101: 'Video embedding not allowed',
+      150: 'Video embedding not allowed'
+    };
+
+    console.error('[TV] YouTube player error:', {
+      code: event.data,
+      description: errorCodes[event.data] || 'Unknown error'
+    });
   };
 
   // CSS classes based on props
   const tvClasses = `tv tv-${size}`;
   
-  // Custom styles based on display settings
-  const screenStyle = {
+  // Custom styles based on display settings and dark mode
+  const screenStyle: React.CSSProperties = {
+    // Keep brightness consistent regardless of room lighting
     filter: `brightness(${displaySettings.brightness}%) contrast(${displaySettings.contrast}%)`,
-    opacity: isOn ? 1 : 0,
-    transition: 'opacity 0.3s ease'
+    position: 'relative',
+    width: '100%',
+    height: '100%'
   };
 
-  // YouTube player options - enhanced for better looping and fullscreen appearance
+  // YouTube player options - enhanced for better fullscreen appearance and origin handling
   const videoOptions = {
     height: '100%',
     width: '100%',
@@ -192,8 +225,8 @@ const TV: React.FC<TVProps> = ({
       mute: 1,
       controls: 0,
       loop: 1,
-      playlist: 'IvuefbvVmcI',
-      start: 30,
+      playlist: 'hf3r9TNSsyY',
+      start: 667,
       enablejsapi: 1,
       modestbranding: 1,
       iv_load_policy: 3,
@@ -202,36 +235,42 @@ const TV: React.FC<TVProps> = ({
       fs: 0,
       disablekb: 1,
       origin: window.location.origin,
+      host: window.location.protocol + '//' + window.location.hostname,
+      playsinline: 1
     }
   };
 
+  // Add useEffect to handle YouTube IFrame API initialization
+  React.useEffect(() => {
+    // Add event listener for YouTube IFrame API ready
+    if (!(window as any).onYouTubeIframeAPIReady) {
+      (window as any).onYouTubeIframeAPIReady = () => {
+        console.log('[TV] YouTube IFrame API is ready');
+      };
+    }
+  }, []);
+
   return (
     <div className="tv-debug-wrapper">      
-      <div className={`tv ${tvClasses} ${isOn ? 'on' : 'off'}`} ref={tvRef} data-size={size}>
+      <div className={`tv ${tvClasses} ${isDarkMode ? 'tv-dark' : ''}`} ref={tvRef} data-size={size}>
         <div className="tv-frame">
           <div className="tv-screen" style={screenStyle}>
-            <div className="tv-content">
-              {/* YouTube video embedded here with enhanced config */}
-              <div className="youtube-container">
-                <YouTube 
-                  videoId="IvuefbvVmcI" 
-                  opts={videoOptions} 
-                  onReady={onPlayerReady}
-                  onStateChange={onPlayerStateChange}
-                  className="youtube-player"
-                />
+            <YouTube 
+              videoId="hf3r9TNSsyY" 
+              opts={videoOptions} 
+              onReady={onPlayerReady}
+              onStateChange={onPlayerStateChange}
+              onError={onPlayerError}
+              className="youtube-player"
+              iframeClassName="youtube-iframe"
+            />
+            
+            {showDebug && (
+              <div className="tv-debug-content">
+                <p style={{ color: 'white', textAlign: 'center' }}>TV Component</p>
+                <p style={{ color: 'white', textAlign: 'center' }}>Size: {size}</p>
               </div>
-
-              {showDebug && (
-                <div className="tv-debug-content">
-                  <p style={{ color: 'white', textAlign: 'center' }}>TV Component</p>
-                  <p style={{ color: 'white', textAlign: 'center' }}>Size: {size}</p>
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="tv-controls">
-            {/* Empty controls section */}
+            )}
           </div>
         </div>
       </div>
@@ -258,7 +297,7 @@ const TV: React.FC<TVProps> = ({
             fontSize: '10px',
             padding: '2px 5px',
           }}>
-            TV: {size} ({dimensions.width}x{dimensions.height})
+            TV: {size}
             <br />
             Wall: {wallColor} ({wallTexture})
           </div>

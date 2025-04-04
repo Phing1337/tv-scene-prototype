@@ -12,7 +12,6 @@ interface TVProps {
     };
     wallColor: string;
     wallTexture: 'paint' | 'wood' | 'wallpaper';
-    isOn: boolean;
 }
 
 const App: React.FC = () => {
@@ -32,16 +31,24 @@ const App: React.FC = () => {
     
     // Light switch state
     const [darkMode, setDarkMode] = useState(false);
-    const [isTVOn, setIsTVOn] = useState(false);
+    
+    // TV display settings based on light state
+    const [tvDisplaySettings, setTvDisplaySettings] = useState({ 
+        brightness: 85, 
+        contrast: 75 
+    });
 
-    // Toggle dark mode function
+    // Toggle dark mode function and adjust brightness
     const toggleLights = () => {
-        setDarkMode(!darkMode);
-    };
-
-    // Toggle TV state function
-    const toggleTV = () => {
-        setIsTVOn(!isTVOn);
+        const newDarkMode = !darkMode;
+        setDarkMode(newDarkMode);
+        
+        // When lights are off (dark mode), remove brightness filter
+        // When lights are on, apply normal brightness settings
+        setTvDisplaySettings({
+            brightness: newDarkMode ? 100 : 85, // Set to 100% (no filter) in dark mode
+            contrast: newDarkMode ? 100 : 75    // Set to 100% (no filter) in dark mode
+        });
     };
 
     // Debug logging wrapper
@@ -98,17 +105,16 @@ const App: React.FC = () => {
     // Props being passed to components
     const tvProps: TVProps = {
         size: 'xlarge',
-        displaySettings: { brightness: 85, contrast: 75 },
+        displaySettings: tvDisplaySettings,
         wallColor: '#e6ccac',
-        wallTexture: 'paint',
-        isOn: isTVOn
+        wallTexture: 'paint'
     };
     debugLog('[App] TV props being passed:', tvProps);
 
     return (
         <div className={`tv-container ${darkMode ? 'dark-mode' : ''}`} ref={tvContainerRef}>
             {/* Add TV glow effect */}
-            <div className={`tv-glow ${isTVOn ? 'tv-on' : ''}`}></div>
+            <div className="tv-glow"></div>
 
             <button 
                 onClick={() => setShowDebug(!showDebug)}
@@ -135,9 +141,7 @@ const App: React.FC = () => {
             
             <LightSwitch 
                 isDarkMode={darkMode} 
-                isTVOn={isTVOn}
                 toggleLights={toggleLights} 
-                toggleTV={toggleTV}
             />
             
             {showDebug && (
@@ -161,6 +165,8 @@ const App: React.FC = () => {
                     <pre>{JSON.stringify(dimensions, null, 2)}</pre>
                     <h4>TV Props:</h4>
                     <pre>{JSON.stringify(tvProps, null, 2)}</pre>
+                    <h4>Current Display Settings:</h4>
+                    <pre>{JSON.stringify(tvDisplaySettings, null, 2)}</pre>
                 </div>
             )}
             
@@ -172,7 +178,7 @@ const App: React.FC = () => {
                         showDebug={showDebug}
                         wallColor={tvProps.wallColor}
                         wallTexture={tvProps.wallTexture}
-                        isOn={isTVOn}
+                        isDarkMode={darkMode}
                     />
                 </div>
             </div>
